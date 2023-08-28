@@ -1,0 +1,11 @@
+docker run --name postgres-container -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:12-alpine
+docker exec -it postgres-container createdb --username=root --owner=root simple_bank
+migrate -path db/migration -database "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable" -verbose up
+
+
+#sqlc related commands:
+docker pull kjconroy/sqlc
+docker run --rm -v ${pwd}:/src -w /src kjconroy/sqlc version
+docker run --rm -v ${pwd}:/src -w /src kjconroy/sqlc init
+docker run --rm -v ${pwd}:/src -w /src kjconroy/sqlc generate
+
