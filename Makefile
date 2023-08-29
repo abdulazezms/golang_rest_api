@@ -20,4 +20,12 @@ test:
 	go clean -testcache
 	go test -v -cover ./...
 
-.PHONY: postgres dropdb createdb migrateup migratedown test
+server:
+	go run main.go
+
+cleandb:
+	docker exec postgres-container psql -U root --dbname=simple_bank \
+	-c "DELETE FROM transfer WHERE 1=1;" \
+	-c "DELETE FROM entry WHERE 1=1;" \
+	-c "DELETE FROM account WHERE 1=1;"
+.PHONY: postgres dropdb createdb migrateup migratedown test server cleandb
