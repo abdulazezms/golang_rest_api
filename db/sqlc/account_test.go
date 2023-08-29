@@ -60,17 +60,14 @@ func TestUpdateAccount(t *testing.T) {
 	arg2 := UpdateAccountParams{
 		ID:      account1.ID,
 		Balance: util.RandomAmount(),
-		Owner: util.RandomOwner(),
 	}
-	err = testQueries.UpdateAccount(context.Background(), arg2)
-	require.NoError(t, err)
+	account1, err = testQueries.UpdateAccount(context.Background(), arg2)
 
-	account1, err = testQueries.GetAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
 	require.Equal(t, account1.ID, arg2.ID)
 	require.Equal(t, account1.Balance, arg2.Balance)
 	require.Equal(t, account1.Currency, arg.Currency)
-	require.Equal(t, account1.Owner, arg2.Owner)
+	require.Equal(t, account1.Owner, arg.Owner)
 }
 
 func TestDeleteAccount(t *testing.T) {
@@ -102,7 +99,7 @@ func TestListAccounts(t *testing.T) {
 		createTestAccount(arg)
 	}
 
-	accounts, err := testQueries.ListAccounts(context.Background())
+	accounts, err := testQueries.ListAccounts(context.Background(), ListAccountsParams{Limit: 100, Offset: 0})
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(accounts), 10)
 	for _, account := range accounts {

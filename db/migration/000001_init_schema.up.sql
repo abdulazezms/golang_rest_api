@@ -7,19 +7,18 @@ CREATE TABLE "account" (
 );
 
 CREATE TABLE "entry" (
-  "id" integer PRIMARY KEY,
+  "id" bigserial PRIMARY KEY,
   "account_id" bigint NOT NULL,
   "amount" bigint NOT NULL,
-  "created_at" timestamp NOT NULL,
-  "updated_at" timestamp
+  "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "transfer" (
-  "id" integer PRIMARY KEY,
+  "id" bigserial PRIMARY KEY,
   "from_account_id" bigint NOT NULL,
   "to_account_id" bigint NOT NULL,
   "amount" bigint NOT NULL,
-  "created_at" timestamp NOT NULL
+  "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE INDEX ON "account" ("owner");
