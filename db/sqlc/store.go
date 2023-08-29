@@ -6,28 +6,28 @@ import (
 	"fmt"
 )
 
-//Store provides all functions to execute db queries and transactions.
+// Store provides all functions to execute db queries and transactions.
 type Store struct {
 	*Queries
 	db *sql.DB //It is required to create a new db transaction.
 }
 
-func NewStore(db *sql.DB) *Store{
+// NewStore creates a new store with accesss to the underlying query object as well as the database.
+func NewStore(db *sql.DB) *Store {
 	return &Store{
 		Queries: New(db),
-		db: db,
+		db:      db,
 	}
 }
 
-//execTx executes a function within a db transaction.
+// execTx executes a function within a db transaction.
 func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 
-	q := New(tx)//create a new Queries object with the created transaction.
-	fmt.Println("Executing transaction...")
+	q := New(tx) //create a new Queries object with the created transaction.
 	err = fn(q)
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
@@ -53,7 +53,6 @@ type TransferTxResult struct {
 	FromEntry   Entry    `json:"from_entry"`
 	ToEntry     Entry    `json:"to_entry"`
 }
-
 
 // TransferTx performs a money transfer from one account to the other.
 // It creates the transfer, add account entries, and update accounts' balance within a database transaction
@@ -88,10 +87,37 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		//TODO: UPDATE ACCOUNTS' BALANCES.
-
-		return nil
+		//Make to execute the below queries in the same order to avoid deadlocks.
+		if arg.FromAccountID < arg.ToAccountID {
+			result.FromAccount, result.ToAccount, err =  transferAmount(ctx, q, arg.FromAccountID, -arg.Amount, arg.ToAccountID, arg.Amount)
+		} else{
+			result.FromAccount, result.ToAccount, err = transferAmount(ctx, q, arg.ToAccountID, arg.Amount, arg.FromAccountID, -arg.Amount)
+		}
+		return err
 	})
 
 	return result, err
+}
+
+func transferAmount(ctx context.Context,
+	q *Queries,
+	accountID1 int64,
+	amount1 int64,
+	accountID2 int64,
+	amount2 int64) (acc1 Account, acc2 Account, err error) {
+	acc1, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		Amount: amount1,
+		ID:     accountID1,
+	})
+	if err != nil {
+		return acc1, acc2, err
+	}
+
+	acc2, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		Amount: amount2,
+		ID:     accountID2,
+	})
+	
+	
+	return acc1, acc2, err
 }
