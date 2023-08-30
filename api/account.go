@@ -35,7 +35,7 @@ func (s Server) createAccount(ctx *gin.Context) {
 type getAccountRequest struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
-
+// accounts/{id of the accou t}
 func (s Server) getAccount(ctx *gin.Context) {
 	var req getAccountRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
