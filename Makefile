@@ -28,4 +28,10 @@ cleandb:
 	-c "DELETE FROM transfer WHERE 1=1;" \
 	-c "DELETE FROM entry WHERE 1=1;" \
 	-c "DELETE FROM account WHERE 1=1;"
-.PHONY: postgres dropdb createdb migrateup migratedown test server cleandb
+
+mock:
+	#go get github.com/golang/mock/mockgen/model
+	mockgen -package mockdb -destination db/mock/store.go tutorial.sqlc.dev/app/db/sqlc Store
+
+
+.PHONY: postgres dropdb createdb migrateup migratedown test server cleandb mock
