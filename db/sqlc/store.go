@@ -87,7 +87,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		//Make to execute the below queries in the same order to avoid deadlocks.
+		//Ensure consistent order to avoid deadlocks.
 		if arg.FromAccountID < arg.ToAccountID {
 			result.FromAccount, result.ToAccount, err =  transferAmount(ctx, q, arg.FromAccountID, -arg.Amount, arg.ToAccountID, arg.Amount)
 		} else{
