@@ -14,15 +14,22 @@ func TestTransferTx(t *testing.T) {
 
 	n := 5
 	transferAmount := util.RandomAmount()
+	
+	argUser1 := getRandomUserParams()
+	createTestUser(argUser1)
+
 	acc1, err := createTestAccount(CreateAccountParams{
-		util.RandomOwner(),
+		argUser1.Username,
 		util.RandomAmount(),
 		util.RandomCurrency(),
 	})
 	require.NoError(t, err)
 
+	argUser2 := getRandomUserParams()
+	createTestUser(argUser2)
+
 	acc2, err := createTestAccount(CreateAccountParams{
-		util.RandomOwner(),
+		argUser2.Username,
 		util.RandomAmount(),
 		util.RandomCurrency(),
 	})
@@ -128,15 +135,22 @@ func TestTransferTxDeadlock(t *testing.T) {
 
 	n := 10
 	transferAmount := util.RandomAmount()
+
+	argUser1 := getRandomUserParams()
+	createTestUser(argUser1)
+
 	acc1, err := createTestAccount(CreateAccountParams{
-		util.RandomOwner(),
+		argUser1.Username,
 		util.RandomAmount(),
 		util.RandomCurrency(),
 	})
 	require.NoError(t, err)
 
+	argUser2 := getRandomUserParams()
+	createTestUser(argUser2)
+
 	acc2, err := createTestAccount(CreateAccountParams{
-		util.RandomOwner(),
+		argUser2.Username,
 		util.RandomAmount(),
 		util.RandomCurrency(),
 	})

@@ -33,11 +33,13 @@ cleandb:
 	docker exec postgres-container psql -U root --dbname=simple_bank \
 	-c "DELETE FROM transfer WHERE 1=1;" \
 	-c "DELETE FROM entry WHERE 1=1;" \
-	-c "DELETE FROM account WHERE 1=1;"
+	-c "DELETE FROM account WHERE 1=1;" \
+	-c "DELETE FROM users WHERE 1=1;"
 
 mock:
-	#go get github.com/golang/mock/mockgen/model
 	mockgen -package mockdb -destination db/mock/store.go tutorial.sqlc.dev/app/db/sqlc Store
 
+sqlcgen:
+	docker run --rm -v $(CURDIR):/src -w /src sqlc/sqlc generate 
 
 .PHONY: postgres dropdb createdb migrateup migratedown migrateup1 migratedown1 test server cleandb mock
