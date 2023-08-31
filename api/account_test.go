@@ -92,7 +92,7 @@ func TestGetAccount(t *testing.T) {
 			//start a test server
 			server := NewServer(store)
 			recorder := httptest.NewRecorder()
-			url := fmt.Sprintf("/accounts/%d", tc.accountID)
+			url := fmt.Sprintf("/v1/accounts/%d", tc.accountID)
 			req, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 			server.router.ServeHTTP(recorder, req) //this would send `req` through the server router and record its response in `recorder`.
