@@ -1,6 +1,11 @@
 package api
 
 import (
+	"database/sql"
+	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"tutorial.sqlc.dev/app/util"
 )
@@ -12,5 +17,23 @@ var validCurrency validator.Func = func(fieldLevel validator.FieldLevel) bool {
 	}
 	//the field isn't a string.
 	return false
+}
 
+func (s Server) isValidAccount(ctx *gin.Context, accountID int64, currency string) bool {
+	account, err := s.store.GetAccount(ctx, accountID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+		} else {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		}
+		return false
+	}
+
+	if account.Currency != currency {
+		err := fmt.Errorf("account [%d] currency mismatch: %s vs %s", accountID, account.Currency, currency)
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return false
+	}
+	return true
 }

@@ -14,9 +14,10 @@ func createTestUser(arg CreateUserParams) (User, error) {
 }
 
 func getRandomUserParams() CreateUserParams {
+	hashedPassword, _ := util.HashPassword(util.RandomString(6))
 	return CreateUserParams{
 		Username:       util.RandomOwner(),
-		HashedPassword: "secret",
+		HashedPassword: hashedPassword,
 		FullName:       util.RandomFullName(),
 		Email:          util.RandomEmail(),
 	}

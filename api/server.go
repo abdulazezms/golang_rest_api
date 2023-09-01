@@ -27,6 +27,7 @@ func NewServer(store db.Store) *Server {
 	grp.GET("/accounts/:id", server.getAccount)
 	grp.GET("/accounts", server.listAccounts)
 	grp.POST("/transfers", server.createTransfer)
+	grp.POST("/users", server.createUser)
 	server.router = router
 	return server
 }
