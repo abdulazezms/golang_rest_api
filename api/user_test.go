@@ -183,7 +183,9 @@ func TestCreateUser(t *testing.T) {
 			tc.buildStubs(store)
 
 			//start a test server
-			server := NewServer(store)
+			server, err := NewTestServer(t, store)
+			require.NoError(t, err)
+
 			recorder := httptest.NewRecorder()
 
 			url := "/v1/users"

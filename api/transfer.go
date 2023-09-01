@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,9 +22,11 @@ type ApiError struct {
 func (s Server) createTransfer(ctx *gin.Context) {
 	var req createTransferRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		fmt.Println("The error is ", err)
 		handleErrorBinding(ctx, err)
 		return
 	}
+	fmt.Println("Received: ", req)
 
 	if !(s.isValidAccount(ctx, req.FromAccountID, req.Currency) && s.isValidAccount(ctx, req.ToAccountID, req.Currency)) {
 		return

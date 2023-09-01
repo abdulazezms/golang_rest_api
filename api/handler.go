@@ -16,6 +16,10 @@ func handleErrorBinding(ctx *gin.Context, err error) {
 			out[i] = ApiError{fe.Field(), msgForTag(fe.Tag())}
 		}
 		ctx.JSON(http.StatusBadRequest, gin.H{"errors": out})
+		return
+	}
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"errors": err.Error()})
 	}
 }
 
