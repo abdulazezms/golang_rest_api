@@ -1,11 +1,12 @@
 package api
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	db "tutorial.sqlc.dev/app/db/sqlc"
+	"tutorial.sqlc.dev/app/token"
 )
 
 type createTransferRequest struct {
@@ -22,18 +23,29 @@ type ApiError struct {
 func (s Server) createTransfer(ctx *gin.Context) {
 	var req createTransferRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		fmt.Println("The error is ", err)
 		handleErrorBinding(ctx, err)
 		return
 	}
-	fmt.Println("Received: ", req)
+	//retrieve the account with the FromID given
+	valid, accountFrom := s.isValidAccount(ctx, req.FromAccountID, req.Currency)
+	if !valid {
+		return
+	}
 
-	if !(s.isValidAccount(ctx, req.FromAccountID, req.Currency) && s.isValidAccount(ctx, req.ToAccountID, req.Currency)) {
+	valid, _ = s.isValidAccount(ctx, req.ToAccountID, req.Currency)
+	if !valid {
+		return
+	}
+
+	//make sure that the account actually belongs to the user
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if accountFrom.Owner != authPayload.Username {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("From Account ID cannot be found in your list of accounts")))
 		return
 	}
 
 	result, err := s.store.TransferTx(ctx, db.TransferTxParams{
-		FromAccountID: req.FromAccountID,
+		FromAccountID: accountFrom.ID,
 		ToAccountID:   req.ToAccountID,
 		Amount:        req.Amount,
 	})

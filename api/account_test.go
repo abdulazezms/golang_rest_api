@@ -9,25 +9,33 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	mockdb "tutorial.sqlc.dev/app/db/mock"
 	db "tutorial.sqlc.dev/app/db/sqlc"
+	mytoken "tutorial.sqlc.dev/app/token"
 	"tutorial.sqlc.dev/app/util"
 )
 
 func TestGetAccount(t *testing.T) {
-	account := randomAccount()
+	randomUser, _ := randomUser(t)
+	account := randomAccount(randomUser.Username)
+
 	testCases := []struct {
 		name          string
 		accountID     int64
+		setUpAuth     func(t *testing.T, request *http.Request, tokenMaker mytoken.Maker)
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:      "OK",
 			accountID: account.ID,
+			setUpAuth: func(t *testing.T, request *http.Request, tokenMaker mytoken.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, randomUser.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account.ID)).
@@ -42,6 +50,9 @@ func TestGetAccount(t *testing.T) {
 		{
 			name:      "Not Found",
 			accountID: account.ID,
+			setUpAuth: func(t *testing.T, request *http.Request, tokenMaker mytoken.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, randomUser.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account.ID)).
@@ -55,6 +66,9 @@ func TestGetAccount(t *testing.T) {
 		{
 			name:      "Internal Error",
 			accountID: account.ID,
+			setUpAuth: func(t *testing.T, request *http.Request, tokenMaker mytoken.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, randomUser.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account.ID)).
@@ -68,6 +82,9 @@ func TestGetAccount(t *testing.T) {
 		{
 			name:      "Bad Request",
 			accountID: 0,
+			setUpAuth: func(t *testing.T, request *http.Request, tokenMaker mytoken.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, randomUser.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Any()).
@@ -75,6 +92,37 @@ func TestGetAccount(t *testing.T) {
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name:      "Unauthorized",
+			accountID: account.ID,
+			setUpAuth: func(t *testing.T, request *http.Request, tokenMaker mytoken.Maker) {
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+
+		{
+			name:      "Forbidden",
+			accountID: account.ID,
+			setUpAuth: func(t *testing.T, request *http.Request, tokenMaker mytoken.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, "randomuser", time.Minute)
+
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(1)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusForbidden, recorder.Code)
 			},
 		},
 	}
@@ -97,6 +145,7 @@ func TestGetAccount(t *testing.T) {
 			url := fmt.Sprintf("/v1/accounts/%d", tc.accountID)
 			req, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
+			tc.setUpAuth(t, req, server.tokenMaker)
 			server.router.ServeHTTP(recorder, req) //this would send `req` through the server router and record its response in `recorder`.
 
 			//check response
@@ -108,10 +157,10 @@ func TestGetAccount(t *testing.T) {
 
 }
 
-func randomAccount() db.Account {
+func randomAccount(owner string) db.Account {
 	return db.Account{
 		ID:       util.RandomInt(1, 1000),
-		Owner:    util.RandomOwner(),
+		Owner:    owner,
 		Balance:  util.RandomAmount(),
 		Currency: util.RandomCurrency(),
 	}
