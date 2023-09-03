@@ -2,7 +2,6 @@ package api
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -88,8 +87,6 @@ func (s Server) loginUser(ctx *gin.Context) {
 		handleErrorBinding(ctx, err)
 		return
 	}
-
-	fmt.Println("Received: ", requestBody)
 
 	user, err := s.store.GetUser(ctx, requestBody.Username)
 	if err != nil {

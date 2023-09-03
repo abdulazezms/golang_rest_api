@@ -133,7 +133,7 @@ func TestGetAccount(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish() //important to check whether all methods that were expected to be called were actually called.
 			store := mockdb.NewMockStore(ctrl)
-
+			
 			//build stubs
 			tc.buildStubs(store)
 

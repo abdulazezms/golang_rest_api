@@ -90,7 +90,7 @@ func TestTransferTx(t *testing.T) {
 		_, err = store.GetEntry(context.Background(), toEntry.ID)
 		require.NoError(t, err)
 
-		//TODO: CHECK ACCOUNTS' BALANCES
+
 		fromAccount := transferResult.FromAccount
 		require.NotEmpty(t, fromAccount)
 		require.Equal(t, acc1.ID, fromAccount.ID)
