@@ -14,7 +14,7 @@ import (
 var testQueries *Queries
 var testDB *sql.DB
 func TestMain(m *testing.M) {
-	config, err := util.LoadConfig("../..", "yml", "config")
+	config, err := util.LoadConfig("../..", "env", "config")
 	if err != nil {
 		log.Fatal("Cannot load configuration: ", err)
 	}
