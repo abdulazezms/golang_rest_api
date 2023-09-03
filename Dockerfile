@@ -26,7 +26,7 @@ COPY --from=builder /app/main .
 
 COPY --from=builder /app/migrate.linux-amd64 ./migrate
 
-COPY config.yml .
+COPY config.env .
 
 COPY db/migration ./migration
 
