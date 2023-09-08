@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-deployment
+  labels:
+    app: go-dep
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-api
+  template:
+    metadata:
+      labels:
+        app: go-api
+    spec:
+      containers:
+      - name: go-rest-api
+        image: 703370271684.dkr.ecr.eu-north-1.amazonaws.com/go_rest_api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
