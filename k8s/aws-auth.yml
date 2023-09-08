@@ -4,7 +4,7 @@ metadata:
   name: aws-auth 
   namespace: kube-system 
 data: 
-  mapUsers: | 
+  mapUsers: |
     - userarn: arn:aws:iam::703370271684:user/github-ci
       username: github-ci
       groups:
