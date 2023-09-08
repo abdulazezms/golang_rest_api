@@ -17,5 +17,6 @@ spec:
       containers:
       - name: go-rest-api
         image: 703370271684.dkr.ecr.eu-north-1.amazonaws.com/go_rest_api:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
